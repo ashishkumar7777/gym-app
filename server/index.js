@@ -2,6 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const Member = require('./models/Member');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = 'supersecretkey';
+const bcrypt = require('bcrypt');
 
 const app = express();
 
@@ -29,6 +32,29 @@ app.use((req, res, next) => {
 });
 
 // ====== Gym Member Routes ====== //
+
+// LOGIN ROUTE
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await Member.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Login failed", error: "User not found" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: "Login failed", error: "Invalid password" });
+    }
+
+    res.status(200).json({ message: "Login successful", user });
+  } catch (err) {
+    res.status(500).json({ message: "Login failed", error: err.message });
+  }
+});
 
 // Get all members
 app.get('/members', async (req, res) => {
@@ -74,11 +100,12 @@ app.get('/members/unpaid', async (req, res) => {
 
 // Create new member
 app.post("/members", async (req, res) => {
+  console.log("Incoming data:", req.body); //
   try {
-    const newMember = await Member.create(req.body);
+    const newMember = new Member(req.body); // instantiate manually
+    await newMember.save(); // triggers pre('save') middleware
     res.json(newMember);
   } catch (err) {
-    // Check for duplicate key error (Mongo error code 11000)
     if (err.code === 11000) {
       return res.status(400).json({ message: 'Email already exists' });
     }
