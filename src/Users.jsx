@@ -6,22 +6,34 @@ function Users() {
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
-        axios.get('http://localhost:3002/members')  // Changed endpoint
-        .then(result => {
-            console.log("API Response:", result.data);  // Added logging
-            setUsers(result.data);
-        })
-        .catch(err => console.log("Error fetching users:", err))
-    }, [])
+    const token = localStorage.getItem('token');
+    
+    axios.get('http://localhost:3002/members', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(result => {
+        console.log("API Response:", result.data);
+        setUsers(result.data);
+    })
+    .catch(err => console.log("Error fetching users:", err));
+}, []);
 
-    const handleDelete = (id) => {
-        axios.delete(`http://localhost:3002/members/${id}`)  // Changed endpoint
-        .then(res => {
-            console.log("Delete response:", res);
-            window.location.reload();
-        })
-        .catch(err => console.log("Error deleting user:", err))
-    }
+const handleDelete = (id) => {
+    const token = localStorage.getItem('token');
+
+    axios.delete(`http://localhost:3002/members/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(res => {
+        console.log("Delete response:", res);
+        window.location.reload();
+    })
+    .catch(err => console.log("Error deleting user:", err));
+}
 
     return (
         <div className='d-flex vh-100 bg-primary justify-content-center align-items-center'>
