@@ -35,7 +35,7 @@ function Users() {
                             <th>Email</th>
                             <th>Age</th>
                             <th>Membership</th>  {/* Added new column */}
-                            <th>Payment Status</th>  {/* Added new column */}
+                            <th>new Payment Status</th>  {/* Added new column */}
                             <th>new Action</th>
                         </tr>
                     </thead>
