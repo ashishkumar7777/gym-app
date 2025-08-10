@@ -10,8 +10,11 @@ function UpdateUser() {
   const [email, setEmail] = useState('');
   const [age, setAge] = useState('');
 
-  useEffect(() => {
-  axios.get(`http://localhost:3002/members/${id}`)
+ useEffect(() => {
+  const token = localStorage.getItem('token');
+  axios.get(`http://localhost:3002/members/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
     .then((res) => {
       setName(res.data.name || '');
       setEmail(res.data.email || '');
@@ -22,10 +25,13 @@ function UpdateUser() {
 
 const handleUpdate = (e) => {
   e.preventDefault();
-  axios.put(`http://localhost:3002/members/${id}`, { name, email, age })
-    .then(() => {
-      navigate('/');
-    })
+  const token = localStorage.getItem('token');
+  axios.put(
+    `http://localhost:3002/members/${id}`,
+    { name, email, age },
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+    .then(() => navigate('/'))
     .catch((err) => console.log(err));
 };
 

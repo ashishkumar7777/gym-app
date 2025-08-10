@@ -1,27 +1,49 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
+import Logout from './logout';
+
+
+import { useNavigate } from 'react-router-dom';
 
 function Users() {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
-        axios.get('http://localhost:3002/members')  // Changed endpoint
-        .then(result => {
-            console.log("API Response:", result.data);  // Added logging
-            setUsers(result.data);
-        })
-        .catch(err => console.log("Error fetching users:", err))
-    }, [])
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+            navigate('/login'); // redirect if no token
+            return;
+        }
 
-    const handleDelete = (id) => {
-        axios.delete(`http://localhost:3002/members/${id}`)  // Changed endpoint
-        .then(res => {
-            console.log("Delete response:", res);
-            window.location.reload();
-        })
-        .catch(err => console.log("Error deleting user:", err))
-    }
+    axios.get('http://localhost:3002/members', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(result => {
+        console.log("API Response:", result.data);
+        setUsers(result.data);
+    })
+    .catch(err => console.log("Error fetching users:", err));
+}, []);
+
+const handleDelete = (id) => {
+    const token = localStorage.getItem('token');
+
+    axios.delete(`http://localhost:3002/members/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then(res => {
+        console.log("Delete response:", res);
+        window.location.reload();
+    })
+    .catch(err => console.log("Error deleting user:", err));
+}
 
     return (
         <div className='d-flex vh-100 bg-primary justify-content-center align-items-center'>
@@ -61,6 +83,7 @@ function Users() {
                             </tr>
                         ))}
                     </tbody>
+                    <Logout />
                 </table>
             </div>
         </div>
