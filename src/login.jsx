@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+import { useNavigate } from 'react-router-dom';
+
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,6 +20,14 @@ function Login() {
       localStorage.setItem('token', res.data.token);
       alert('Logged in!');
       // Redirect to dashboard or member area
+      // Redirect to users page
+      //navigate('/');
+     // navigate('/member-dashboard');
+     if (form.email === 'gymowner@gmail.com') {
+      navigate('/'); // Admin dashboard
+    } else {
+      navigate('/member-dashboard'); // Member dashboard
+    }
     } catch (err) {
       console.error(err.response?.data || err.message);
       alert(err.response?.data?.message || 'Login failed');

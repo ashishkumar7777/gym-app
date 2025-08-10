@@ -79,9 +79,19 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// for memberdashboard to redirect the details.
+app.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const member = await Member.findById(req.user.id); // req.user comes from JWT
+    res.json(member);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Create new member
 app.post("/members", async (req, res) => {
-  console.log("Incoming data:", req.body);
+  //console.log("Incoming data:", req.body);
   try {
     const newMember = new Member(req.body);
     await newMember.save();

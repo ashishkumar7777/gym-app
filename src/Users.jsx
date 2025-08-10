@@ -1,13 +1,23 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
+import Logout from './logout';
+
+
+import { useNavigate } from 'react-router-dom';
 
 function Users() {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
     const token = localStorage.getItem('token');
     
+    if (!token) {
+            navigate('/login'); // redirect if no token
+            return;
+        }
+
     axios.get('http://localhost:3002/members', {
         headers: {
             Authorization: `Bearer ${token}`
@@ -73,6 +83,7 @@ const handleDelete = (id) => {
                             </tr>
                         ))}
                     </tbody>
+                    <Logout />
                 </table>
             </div>
         </div>
