@@ -6,7 +6,9 @@ function CreateUser() {
   const [member, setMember] = useState({
     name: '',
     email: '',
+    password: '', 
     age: '',
+    number: '',
     membershipType: 'Standard', // Default value
     paymentStatus: {
       isPaid: false,
@@ -14,7 +16,10 @@ function CreateUser() {
       nextDueDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
     }
   });
+
   
+  
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -92,6 +97,20 @@ function CreateUser() {
               required
             />
           </div>
+
+            <div className='mb-2'>
+                <label htmlFor="password">Password</label>
+                <input 
+                  type="password" 
+                  placeholder='Set Password' 
+                  className='form-control'
+                  id="password"
+                  name="password"
+                  value={member.password || ''}
+                  onChange={handleChange}
+                  required
+                />
+          </div>
           
           <div className='mb-2'>
             <label htmlFor="age">Age</label>
@@ -105,6 +124,22 @@ function CreateUser() {
               onChange={handleChange}
               min="16"
               max="100"
+              required
+            />
+          </div>
+
+          <div className='mb-2'>
+            <label htmlFor="age">number</label>
+            <input 
+              type="number" 
+              placeholder='Enter Age' 
+              className='form-control'
+              id="age"
+              name="number"
+              value={member.number}
+              onChange={handleChange}
+              //min="16"
+              //max="10000000"
               required
             />
           </div>
