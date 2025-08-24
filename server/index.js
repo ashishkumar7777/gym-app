@@ -1,4 +1,5 @@
 // ====== Imports ======
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -11,26 +12,24 @@ const crypto = require('crypto');
 const app = express();
 
 // ====== Config ======
-const PORT = 3002;
-const JWT_SECRET = 'supersecretkey'; // store in env in real apps
+const PORT = process.env.PORT || 3002;
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const razorpay = new Razorpay({
-  key_id: 'rzp_test_cGMp9Ibbd00J3B',
-  key_secret: '8TMmNSVEOjgQtU5n466ZURLL',
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
-
 
 // ====== Middleware ======
 app.use(cors({
-  origin: 'http://localhost:5173', // frontend URL
+  origin: process.env.CLIENT_URL || 'http://localhost:5173', // set frontend URL in .env on Render
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
 app.use(express.json());
 
 // ====== MongoDB Connection ======
-mongoose.connect("mongodb://localhost:27017/gymDB", {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -53,53 +52,40 @@ function authenticateToken(req, res, next) {
 
 // ====== Routes ======
 
-// Login route
+// Login
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
   try {
     const user = await Member.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({ message: "Login failed", error: "User not found" });
-    }
+    if (!user) return res.status(401).json({ message: "User not found" });
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) return res.status(401).json({ message: "Invalid password" });
 
-    if (!isPasswordMatch) {
-      return res.status(401).json({ message: "Login failed", error: "Invalid password" });
-    }
-
-    // Create JWT
     const token = jwt.sign(
       { id: user._id, email: user.email },
       JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.status(200).json({
-      message: "Login successful",
-      token
-    });
-
+    res.json({ message: "Login successful", token });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
   }
 });
 
-// for memberdashboard to redirect the details.
+// Current user info
 app.get('/me', authenticateToken, async (req, res) => {
   try {
-    const member = await Member.findById(req.user.id); // req.user comes from JWT
+    const member = await Member.findById(req.user.id);
     res.json(member);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// Create new member
+// Members CRUD
 app.post("/members", async (req, res) => {
-  //console.log("Incoming data:", req.body);
   try {
     const newMember = new Member(req.body);
     await newMember.save();
@@ -112,7 +98,6 @@ app.post("/members", async (req, res) => {
   }
 });
 
-// Get all members (Protected)
 app.get('/members', authenticateToken, async (req, res) => {
   try {
     const members = await Member.find({});
@@ -122,20 +107,16 @@ app.get('/members', authenticateToken, async (req, res) => {
   }
 });
 
-// Get single member by ID (Protected)
 app.get('/members/:id', authenticateToken, async (req, res) => {
   try {
     const member = await Member.findById(req.params.id);
-    if (!member) {
-      return res.status(404).json({ message: 'Member not found' });
-    }
+    if (!member) return res.status(404).json({ message: 'Member not found' });
     res.json(member);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching member', error: err.message });
   }
 });
 
-// Get unpaid members (Protected)
 app.get('/members/unpaid', authenticateToken, async (req, res) => {
   try {
     const members = await Member.find({ 'paymentStatus.isPaid': false });
@@ -145,7 +126,6 @@ app.get('/members/unpaid', authenticateToken, async (req, res) => {
   }
 });
 
-// Update member details (Protected)
 app.put('/members/:id', authenticateToken, async (req, res) => {
   try {
     const updatedMember = await Member.findByIdAndUpdate(
@@ -153,16 +133,13 @@ app.put('/members/:id', authenticateToken, async (req, res) => {
       req.body,
       { new: true, runValidators: true }
     );
-    if (!updatedMember) {
-      return res.status(404).json({ message: 'Member not found' });
-    }
+    if (!updatedMember) return res.status(404).json({ message: 'Member not found' });
     res.json(updatedMember);
   } catch (err) {
     res.status(400).json({ message: 'Error updating member', error: err.message });
   }
 });
 
-// Update payment status (Protected)
 app.put('/members/pay/:id', authenticateToken, async (req, res) => {
   try {
     const updatedMember = await Member.findByIdAndUpdate(
@@ -175,35 +152,31 @@ app.put('/members/pay/:id', authenticateToken, async (req, res) => {
       },
       { new: true }
     );
-    if (!updatedMember) {
-      return res.status(404).json({ message: 'Member not found' });
-    }
+    if (!updatedMember) return res.status(404).json({ message: 'Member not found' });
     res.json(updatedMember);
   } catch (err) {
     res.status(400).json({ message: 'Error updating payment status', error: err.message });
   }
 });
 
-// Delete member (Protected)
-app.delete('/members/:id', authenticateToken, (req, res) => {
-  const id = req.params.id;
-  Member.findByIdAndDelete(id)
-    .then(() => res.json({ message: 'Member deleted successfully' }))
-    .catch(err => res.status(500).json({ error: 'Failed to delete member', details: err }));
+app.delete('/members/:id', authenticateToken, async (req, res) => {
+  try {
+    await Member.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Member deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete member', details: err });
+  }
 });
 
-
-//razorpay
+// Razorpay
 app.post('/create-order', authenticateToken, async (req, res) => {
-  const { amount } = req.body; // amount in paise
-
+  const { amount } = req.body;
   try {
     const options = {
       amount,
       currency: 'INR',
       receipt: `receipt_order_${Date.now()}`,
     };
-
     const order = await razorpay.orders.create(options);
     res.json({ order_id: order.id });
   } catch (err) {
@@ -213,13 +186,11 @@ app.post('/create-order', authenticateToken, async (req, res) => {
 
 app.post('/verify-payment', authenticateToken, async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, memberId } = req.body;
-
-  const generated_signature = crypto.createHmac('sha256', razorpay.key_secret)
+  const generated_signature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
     .update(razorpay_order_id + "|" + razorpay_payment_id)
     .digest('hex');
 
   if (generated_signature === razorpay_signature) {
-    // Signature is valid, update payment status in DB for memberId
     try {
       await Member.findByIdAndUpdate(memberId, {
         'paymentStatus.isPaid': true,
@@ -228,7 +199,7 @@ app.post('/verify-payment', authenticateToken, async (req, res) => {
         'paymentStatus.overdue': false
       });
       res.json({ success: true });
-    } catch (err) {
+    } catch {
       res.status(500).json({ success: false, message: 'DB update failed' });
     }
   } else {

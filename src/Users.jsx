@@ -1,54 +1,50 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Logout from './logout';
 
-
-import { useNavigate } from 'react-router-dom';
+// ✅ Base URL from env OR fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
 
 function Users() {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
             navigate('/login'); // redirect if no token
             return;
         }
 
-    axios.get('http://localhost:3002/members', {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
-    .then(result => {
-        console.log("API Response:", result.data);
-        setUsers(result.data);
-    })
-    .catch(err => console.log("Error fetching users:", err));
-}, []);
+        axios.get(`${API_BASE_URL}/members`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(result => {
+            console.log("API Response:", result.data);
+            setUsers(result.data);
+        })
+        .catch(err => console.log("Error fetching users:", err));
+    }, [navigate]);
 
-const handleDelete = (id) => {
-    const token = localStorage.getItem('token');
+    const handleDelete = (id) => {
+        const token = localStorage.getItem('token');
 
-    axios.delete(`http://localhost:3002/members/${id}`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })
-    .then(res => {
-        console.log("Delete response:", res);
-        window.location.reload();
-    })
-    .catch(err => console.log("Error deleting user:", err));
-}
+        axios.delete(`${API_BASE_URL}/members/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(res => {
+            console.log("Delete response:", res);
+            setUsers(users.filter(u => u._id !== id)); // ✅ remove from state instead of reload
+        })
+        .catch(err => console.log("Error deleting user:", err));
+    }
 
     return (
         <div className='d-flex vh-100 bg-primary justify-content-center align-items-center'>
             <div className='w-50 bg-white rounded p-3'>
-                <Link to="/create" className='btn btn-success'>Add+</Link>
+                <Link to="/create" className='btn btn-success mb-2'>Add+</Link>
 
                 <table className='table'>
                     <thead>
@@ -56,18 +52,18 @@ const handleDelete = (id) => {
                             <th>Name</th>
                             <th>Email</th>
                             <th>Age</th>
-                            <th>Membership</th>  {/* Added new column */}
-                            <th>new Payment Status</th>  {/* Added new column */}
-                            <th>new Action</th>
+                            <th>Membership</th>
+                            <th>Payment Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {users.map((user) => (
-                            <tr key={user._id}>  {/* Changed from user.id to user._id */}
+                            <tr key={user._id}>
                                 <td>{user.name}</td>
                                 <td>{user.email}</td>
                                 <td>{user.age}</td>
-                                <td>{user.membershipType}</td>  {/* New column */}
+                                <td>{user.membershipType}</td>
                                 <td className={user.paymentStatus?.overdue ? 'text-danger' : 'text-success'}>
                                     {user.paymentStatus?.isPaid ? 'Paid' : 'Unpaid'}
                                 </td>
@@ -75,7 +71,7 @@ const handleDelete = (id) => {
                                     <Link to={`/update/${user._id}`} className='btn btn-info'>Update</Link>
                                     <button 
                                         className='btn btn-danger ms-2' 
-                                        onClick={(e) => handleDelete(user._id)}
+                                        onClick={() => handleDelete(user._id)}
                                     >
                                         Delete
                                     </button>
@@ -83,8 +79,8 @@ const handleDelete = (id) => {
                             </tr>
                         ))}
                     </tbody>
-                    <Logout />
                 </table>
+                <Logout />
             </div>
         </div>
     );
