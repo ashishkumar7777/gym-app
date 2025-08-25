@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
+
 function CreateUser() {
   const [member, setMember] = useState({
     name: '',
@@ -16,9 +18,6 @@ function CreateUser() {
       nextDueDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
     }
   });
-
-  
-  
 
   const navigate = useNavigate();
 
@@ -53,7 +52,7 @@ function CreateUser() {
       }
     };
 
-    axios.post("https://gym-app-3-rrwg.onrender.com/members", memberToSend)
+    axios.post(`${API_BASE_URL}/members`, memberToSend)
       .then(result => {
         console.log("Member created:", result.data);
         navigate('/');
@@ -98,18 +97,18 @@ function CreateUser() {
             />
           </div>
 
-            <div className='mb-2'>
-                <label htmlFor="password">Password</label>
-                <input 
-                  type="password" 
-                  placeholder='Set Password' 
-                  className='form-control'
-                  id="password"
-                  name="password"
-                  value={member.password || ''}
-                  onChange={handleChange}
-                  required
-                />
+          <div className='mb-2'>
+            <label htmlFor="password">Password</label>
+            <input 
+              type="password" 
+              placeholder='Set Password' 
+              className='form-control'
+              id="password"
+              name="password"
+              value={member.password || ''}
+              onChange={handleChange}
+              required
+            />
           </div>
           
           <div className='mb-2'>
@@ -129,17 +128,15 @@ function CreateUser() {
           </div>
 
           <div className='mb-2'>
-            <label htmlFor="age">number</label>
+            <label htmlFor="number">Phone Number</label>
             <input 
-              type="number" 
-              placeholder='Enter Age' 
+              type="tel" 
+              placeholder='Enter Phone Number' 
               className='form-control'
-              id="age"
+              id="number"
               name="number"
               value={member.number}
               onChange={handleChange}
-              //min="16"
-              //max="10000000"
               required
             />
           </div>

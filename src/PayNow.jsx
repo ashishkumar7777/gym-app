@@ -1,5 +1,7 @@
 import React from 'react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
+
 function PayNow({ amount, memberId, onPaymentSuccess }) {
 
   const loadRazorpayScript = () => {
@@ -21,7 +23,7 @@ function PayNow({ amount, memberId, onPaymentSuccess }) {
     }
 
     // 1. Create order on backend to get order_id
-    const orderResult = await fetch('https://gym-app-3-rrwg.onrender.com/create-order', {
+    const orderResult = await fetch(`${API_BASE_URL}/create-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +47,7 @@ function PayNow({ amount, memberId, onPaymentSuccess }) {
       order_id: orderResult.order_id,
       handler: async function (response) {
         // Payment successful, send details to backend to verify & update DB
-        const verifyResponse = await fetch('https://gym-app-3-rrwg.onrender.com/verify-payment', {
+        const verifyResponse = await fetch(`${API_BASE_URL}/verify-payment`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

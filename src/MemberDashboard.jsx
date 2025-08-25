@@ -3,13 +3,15 @@ import axios from 'axios';
 import Logout from './logout';
 import PayNow from './PayNow';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
+
 function MemberDashboard() {
   const [member, setMember] = useState(null);
 
   const fetchMember = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('https://gym-app-3-rrwg.onrender.com/me', {
+      const res = await axios.get(`${API_BASE_URL}/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMember(res.data);

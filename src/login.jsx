@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-
 import { useNavigate } from 'react-router-dom';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
 
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -15,19 +16,16 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await axios.post('https://gym-app-3-rrwg.onrender.com/login', form);
+      const res = await axios.post(`${API_BASE_URL}/login`, form);
       console.log('Login success:', res.data);
       localStorage.setItem('token', res.data.token);
       alert('Logged in!');
-      // Redirect to dashboard or member area
-      // Redirect to users page
-      //navigate('/');
-     // navigate('/member-dashboard');
-     if (form.email === 'gymowner@gmail.com') {
-      navigate('/'); // Admin dashboard
-    } else {
-      navigate('/member-dashboard'); // Member dashboard
-    }
+      
+      if (form.email === 'gymowner@gmail.com') {
+        navigate('/'); // Admin dashboard
+      } else {
+        navigate('/member-dashboard'); // Member dashboard
+      }
     } catch (err) {
       console.error(err.response?.data || err.message);
       alert(err.response?.data?.message || 'Login failed');
