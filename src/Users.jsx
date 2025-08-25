@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Logout from './logout';
 
 // ✅ Base URL from env OR fallback to localhost
-const API_BASE_URL = import.meta.env.VITE_API_URL || "mongodb+srv://Ashish:Ashish@cluster0.zuueesf.mongodb.net/gymDB?retryWrites=true&w=majority&appName=Cluster0";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
 
 function Users() {
     const navigate = useNavigate();

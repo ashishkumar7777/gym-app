@@ -53,7 +53,7 @@ function CreateUser() {
       }
     };
 
-    axios.post("http://localhost:3002/members", memberToSend)
+    axios.post("https://gym-app-3-rrwg.onrender.com/members", memberToSend)
       .then(result => {
         console.log("Member created:", result.data);
         navigate('/');

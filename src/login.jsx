@@ -15,7 +15,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const res = await axios.post('http://localhost:3002/login', form);
+      const res = await axios.post('https://gym-app-3-rrwg.onrender.com/login', form);
       console.log('Login success:', res.data);
       localStorage.setItem('token', res.data.token);
       alert('Logged in!');

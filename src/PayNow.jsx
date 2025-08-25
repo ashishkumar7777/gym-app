@@ -21,7 +21,7 @@ function PayNow({ amount, memberId, onPaymentSuccess }) {
     }
 
     // 1. Create order on backend to get order_id
-    const orderResult = await fetch('http://localhost:3002/create-order', {
+    const orderResult = await fetch('https://gym-app-3-rrwg.onrender.com/create-order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ function PayNow({ amount, memberId, onPaymentSuccess }) {
       order_id: orderResult.order_id,
       handler: async function (response) {
         // Payment successful, send details to backend to verify & update DB
-        const verifyResponse = await fetch('http://localhost:3002/verify-payment', {
+        const verifyResponse = await fetch('https://gym-app-3-rrwg.onrender.com/verify-payment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

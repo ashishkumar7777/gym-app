@@ -9,7 +9,7 @@ function MemberDashboard() {
   const fetchMember = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3002/me', {
+      const res = await axios.get('https://gym-app-3-rrwg.onrender.com/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMember(res.data);
